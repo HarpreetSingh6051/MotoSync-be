@@ -84,6 +84,8 @@ export const SEED_USERS = [
   },
 ];
 
+let memoryUsers = [...SEED_USERS];
+
 @Injectable()
 export class UsersService {
   constructor(private supabaseService: SupabaseService) {}
@@ -100,9 +102,9 @@ export class UsersService {
         return data;
       }
     } catch {
-      /* return seed users */
+      /* return memory users */
     }
-    return SEED_USERS;
+    return memoryUsers;
   }
 
   async findOne(id: string) {
@@ -118,7 +120,7 @@ export class UsersService {
     } catch {
       /* fallback */
     }
-    return SEED_USERS.find((u) => u.id === id) || null;
+    return memoryUsers.find((u) => u.id === id) || null;
   }
 
   async createOrUpdate(userData: any) {
@@ -130,10 +132,30 @@ export class UsersService {
         .select()
         .single();
 
-      if (!error && data) return data;
+      if (!error && data) {
+        const idx = memoryUsers.findIndex((u) => u.id === data.id);
+        if (idx >= 0) memoryUsers[idx] = data;
+        else memoryUsers.unshift(data);
+        return data;
+      }
     } catch (e) {
       console.error('User upsert error:', e);
     }
-    return { ...userData, updated_at: new Date().toISOString() };
+
+    const fallbackUser = {
+      id: userData.id || `u_${Date.now()}`,
+      ...userData,
+      updated_at: new Date().toISOString(),
+      created_at: userData.created_at || new Date().toISOString(),
+    };
+    const idx = memoryUsers.findIndex(
+      (u) => u.id === fallbackUser.id || (userData.handle && u.handle === userData.handle),
+    );
+    if (idx >= 0) {
+      memoryUsers[idx] = { ...memoryUsers[idx], ...fallbackUser };
+    } else {
+      memoryUsers.unshift(fallbackUser);
+    }
+    return fallbackUser;
   }
 }

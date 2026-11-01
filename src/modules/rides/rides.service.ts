@@ -61,6 +61,8 @@ export const SEED_RIDES = [
   },
 ];
 
+let memoryRides: any[] = [...SEED_RIDES];
+
 @Injectable()
 export class RidesService {
   constructor(private supabaseService: SupabaseService) {}
@@ -77,9 +79,9 @@ export class RidesService {
         return data;
       }
     } catch {
-      /* return seed rides */
+      /* return memory rides */
     }
-    return SEED_RIDES;
+    return memoryRides;
   }
 
   async findOne(id: string) {
@@ -95,7 +97,7 @@ export class RidesService {
     } catch {
       /* fallback */
     }
-    return SEED_RIDES.find((r) => r.id === id) || null;
+    return memoryRides.find((r) => r.id === id) || null;
   }
 
   async create(rideData: any) {
@@ -127,19 +129,40 @@ export class RidesService {
         .select()
         .single();
 
-      if (!error && data) return data;
+      if (!error && data) {
+        memoryRides.unshift(data);
+        return data;
+      }
     } catch (e) {
       console.error('Ride creation error:', e);
     }
 
-    return {
-      id: `r_${Date.now()}`,
-      ...rideData,
+    const fallbackRide = {
+      id: rideData.id || `r_${Date.now()}`,
+      title: rideData.title || 'Sunday Pack Ride',
+      route_summary: rideData.routeSummary || rideData.route_summary || 'Scenic highway run',
+      description: rideData.description || '',
+      captain_id: rideData.captainId || rideData.captain_id || 'u_arjun',
+      club_id: rideData.clubId || rideData.club_id || null,
+      region_scope: rideData.regionScope || rideData.region_scope || 'Near Me',
+      distance_label: rideData.distanceLabel || `${Number(rideData.distanceKm || 120)} km Roundtrip`,
+      distance_km: Number(rideData.distanceKm || 120),
+      start_time: rideData.startTime || rideData.start_time || new Date(Date.now() + 86400000).toISOString(),
+      meetup_label: rideData.meetupLabel || rideData.meetup_label || 'Highway Meetup Point',
+      visibility: rideData.visibility || 'public',
+      status: 'upcoming',
+      max_riders: Number(rideData.maxRiders || 25),
+      split_enabled: Boolean(rideData.splitEnabled ?? true),
+      difficulty: rideData.difficulty || 'Spirited',
+      hashtags: Array.isArray(rideData.hashtags) ? rideData.hashtags : ['MotoSync', 'PackRide'],
+      waypoints: rideData.waypoints || [],
       likes_count: 1,
       comment_count: 0,
-      status: 'upcoming',
+      participant_ids: ['u_arjun'],
       created_at: new Date().toISOString(),
     };
+    memoryRides.unshift(fallbackRide);
+    return fallbackRide;
   }
 
   async join(rideId: string, userId: string, formationRole: string = 'Pack Member') {

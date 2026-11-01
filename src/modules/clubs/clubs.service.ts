@@ -72,6 +72,8 @@ export const SEED_CLUBS = [
   },
 ];
 
+let memoryClubs = [...SEED_CLUBS];
+
 @Injectable()
 export class ClubsService {
   constructor(private supabaseService: SupabaseService) {}
@@ -88,9 +90,9 @@ export class ClubsService {
         return data;
       }
     } catch {
-      /* return seed clubs */
+      /* return memory clubs */
     }
-    return SEED_CLUBS;
+    return memoryClubs;
   }
 
   async findOne(id: string) {
@@ -106,7 +108,7 @@ export class ClubsService {
     } catch {
       /* fallback */
     }
-    return SEED_CLUBS.find((c) => c.id === id) || null;
+    return memoryClubs.find((c) => c.id === id) || null;
   }
 
   async create(clubData: any) {
@@ -130,17 +132,23 @@ export class ClubsService {
         .select()
         .single();
 
-      if (!error && data) return data;
+      if (!error && data) {
+        memoryClubs.unshift(data);
+        return data;
+      }
     } catch (e) {
       console.error('Club creation error:', e);
     }
-    return {
-      id: `c_${Date.now()}`,
+
+    const fallbackClub = {
+      id: clubData.id || `c_${Date.now()}`,
       ...clubData,
       member_count: 1,
       riding_now: 0,
       created_at: new Date().toISOString(),
     };
+    memoryClubs.unshift(fallbackClub);
+    return fallbackClub;
   }
 
   async update(id: string, updates: any) {
@@ -153,11 +161,19 @@ export class ClubsService {
         .select()
         .single();
 
-      if (!error && data) return data;
+      if (!error && data) {
+        const idx = memoryClubs.findIndex((c) => c.id === id);
+        if (idx >= 0) memoryClubs[idx] = data;
+        return data;
+      }
     } catch {
       /* fallback */
     }
-    const existing = SEED_CLUBS.find((c) => c.id === id);
-    return { ...existing, ...updates };
+    const idx = memoryClubs.findIndex((c) => c.id === id);
+    if (idx >= 0) {
+      memoryClubs[idx] = { ...memoryClubs[idx], ...updates };
+      return memoryClubs[idx];
+    }
+    return { id, ...updates };
   }
 }
