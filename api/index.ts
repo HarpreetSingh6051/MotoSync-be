@@ -3,7 +3,7 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 import { AppModule } from '../src/app.module';
 import express, { Express, Request, Response } from 'express';
 import helmet from 'helmet';
-import * as compression from 'compression';
+import compression from 'compression';
 import { ValidationPipe } from '@nestjs/common';
 
 let cachedServer: Express;
