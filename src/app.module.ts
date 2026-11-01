@@ -10,6 +10,7 @@ import { FlagsModule } from './modules/flags/flags.module';
 import { SoundsModule } from './modules/sounds/sounds.module';
 import { CampaignsModule } from './modules/campaigns/campaigns.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { ReportsModule } from './modules/reports/reports.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AdminModule } from './modules/admin/admin.module';
     SoundsModule,
     CampaignsModule,
     AdminModule,
+    ReportsModule,
   ],
 })
 export class AppModule {}
