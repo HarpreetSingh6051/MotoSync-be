@@ -6,12 +6,12 @@ import helmet from 'helmet';
 import * as compression from 'compression';
 import { ValidationPipe } from '@nestjs/common';
 
-const server: Express = express();
-let isInitialized = false;
+let cachedServer: Express;
 
-async function bootstrap() {
-  if (!isInitialized) {
-    const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+async function bootstrapServer(): Promise<Express> {
+  if (!cachedServer) {
+    const expressApp = express();
+    const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
     app.setGlobalPrefix('api/v1');
     app.use(helmet());
     app.use(compression());
@@ -27,11 +27,12 @@ async function bootstrap() {
       }),
     );
     await app.init();
-    isInitialized = true;
+    cachedServer = expressApp;
   }
+  return cachedServer;
 }
 
 export default async function handler(req: Request, res: Response) {
-  await bootstrap();
-  server(req, res);
+  const server = await bootstrapServer();
+  return server(req, res);
 }
