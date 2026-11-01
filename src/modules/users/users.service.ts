@@ -1,0 +1,30 @@
+import { Injectable } from '@nestjs/common';
+import { SupabaseService } from '../../supabase/supabase.service';
+
+@Injectable()
+export class UsersService {
+  constructor(private supabaseService: SupabaseService) {}
+
+  async findAll() {
+    const { data, error } = await this.supabaseService
+      .getClient()
+      .from('profiles')
+      .select('*')
+      .limit(100);
+
+    if (error) throw error;
+    return data;
+  }
+
+  async findOne(id: string) {
+    const { data, error } = await this.supabaseService
+      .getClient()
+      .from('profiles')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+}
