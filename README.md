@@ -1,6 +1,6 @@
-﻿# Kixup Backend (NestJS API)
+# MotoSync Backend (NestJS API)
 
-Independent NestJS API backend for the Kixup platform. Connects to Supabase (or any PostgreSQL database) and exposes RESTful endpoints for the rider app and admin ERP.
+Independent NestJS API backend for the MotoSync platform. Connects to Supabase (or any PostgreSQL database) and exposes RESTful endpoints for the rider app and admin ERP.
 
 ## Features
 - **REST API** with global prefix `/api/v1`

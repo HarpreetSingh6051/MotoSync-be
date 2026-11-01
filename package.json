@@ -1,8 +1,8 @@
 {
-  "name": "kixup-backend",
+  "name": "motosync-backend",
   "version": "1.0.0",
-  "description": "Kixup independent NestJS API backend connecting to Supabase/Postgres",
-  "author": "Kixup",
+  "description": "MotoSync independent NestJS API backend connecting to Supabase/Postgres",
+  "author": "MotoSync",
   "private": true,
   "license": "MIT",
   "scripts": {
