@@ -1,71 +1,44 @@
-# MotoSync Backend (NestJS API)
+# MotoSync Backend API Gateway
 
-Independent NestJS API backend for the MotoSync platform. Connects to Supabase (or any PostgreSQL database) and exposes RESTful endpoints for the rider app and admin ERP.
+Independent NestJS REST API backend for the MotoSync platform (**Pack Connected. Ride in Sync**). Serves as the authoritative write gateway, Supabase service-role mediator, and audit logger.
 
-## Features
-- **REST API** with global prefix `/api/v1`
-- **Supabase Integration** - Works with existing Supabase database and RLS policies
-- **Modular Architecture** - Plans, Flags, Sounds, Campaigns, Users, Rides, Clubs, Admin modules
-- **Admin ERP Endpoints** - Full CRUD for platform configuration
-- **Health Check** - `/api/v1/health`
-- **Production Ready** - Helmet, CORS, compression, validation pipes
+## Tech Stack & Architecture
+- **Framework**: NestJS 10, Express, TypeScript, Node.js 20
+- **Database & Auth**: Supabase PostgreSQL + Supabase Auth JWT verification
+- **Validation**: `class-validator`, `class-transformer` DTO validation pipes
+- **Security**: Helmet, CORS origin restriction, Throttler rate limiting
+- **Docker**: Multi-stage production Dockerfile with built-in healthcheck
 
-## Quick Start
+## Local Development
 
 ```bash
+# 1. Install dependencies
 npm install
+
+# 2. Start development server with hot-reload (port 4000)
 npm run start:dev
+
+# 3. Production build & start
+npm run build
+npm run start:prod   # Runs node dist/src/main
 ```
 
-The API will be available at `http://localhost:4000/api/v1`
+The API runs at `http://localhost:4000/api/v1` (with healthcheck at `/api/v1/health`).
 
 ## Environment Variables
-Copy `.env.example` to `.env` and configure:
-
+Configure in `.env`:
 ```env
 NODE_ENV=development
 PORT=4000
 API_PREFIX=/api/v1
-CORS_ORIGIN=http://localhost:5173,http://localhost:5174
-SUPABASE_URL=https://hxsifqmspboitoqnkvwj.supabase.co
-SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key (optional, for admin operations)
+CORS_ORIGIN=http://localhost:8081,http://localhost:3000,http://localhost:5174
+SUPABASE_URL=https://your-supabase-project.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOi...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
 ```
 
-## API Endpoints
-
-### Public
-- `GET /api/v1/health` - Health check
-- `GET /api/v1/plans` - Active subscription plans
-- `GET /api/v1/flags` - Feature flags
-- `GET /api/v1/sounds` - Active exhaust sounds
-- `GET /api/v1/campaigns` - Active sponsored campaigns
-- `GET /api/v1/rides` - Rides feed
-- `GET /api/v1/clubs` - Clubs directory
-- `GET /api/v1/users` - Users (limited)
-
-### Admin (use service role or authenticated with super_admin)
-- `GET /api/v1/admin/users` - All users
-- `PUT /api/v1/admin/users/:id` - Update user
-- `GET /api/v1/admin/audit` - Audit log
-- `POST /api/v1/admin/audit` - Log action
-- `GET /api/v1/plans/admin` - All plans (including inactive)
-- `POST /api/v1/plans` - Create/update plan
-- `DELETE /api/v1/plans/:id` - Delete plan
-- `GET /api/v1/flags/admin` - All flags
-- `POST /api/v1/flags` - Upsert flag
-- `DELETE /api/v1/flags/:key` - Delete flag
-- `GET /api/v1/sounds/admin` - All sounds
-- `POST /api/v1/sounds` - Upsert sound
-- `DELETE /api/v1/sounds/:id` - Delete sound
-- `GET /api/v1/campaigns/admin` - All campaigns
-- `POST /api/v1/campaigns` - Upsert campaign
-- `DELETE /api/v1/campaigns/:id` - Delete campaign
-
-## Deployment
-- **Railway/Render/Fly.io**: Use the included `Dockerfile`
-- **Vercel/Heroku**: Build with `npm run build`, start with `npm run start:prod`
-- **Environment**: Set all env vars in your hosting provider
-
-## Database
-This backend works with your existing Supabase database. Migrations are stored in `supabase/migrations/` for reference. All RLS policies remain enforced.
+## Docker Deployment
+```bash
+docker build -t motosync-backend .
+docker run -p 4000:4000 --env-file .env motosync-backend
+```
