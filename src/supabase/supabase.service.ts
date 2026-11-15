@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Injectable, ServiceUnavailableException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 @Injectable()
 export class SupabaseService {
@@ -9,21 +9,21 @@ export class SupabaseService {
 
   constructor(private configService: ConfigService) {
     const url =
-      this.configService.get<string>('SUPABASE_URL') ||
+      this.configService.get<string>("SUPABASE_URL") ||
       process.env.SUPABASE_URL ||
       process.env.VITE_SUPABASE_URL ||
-      'https://hxsifqmspboitoqnkvwj.supabase.co';
+      "https://hxsifqmspboitoqnkvwj.supabase.co";
     const anonKey =
-      this.configService.get<string>('SUPABASE_ANON_KEY') ||
+      this.configService.get<string>("SUPABASE_ANON_KEY") ||
       process.env.SUPABASE_ANON_KEY ||
       process.env.VITE_SUPABASE_ANON_KEY ||
-      'sb_publishable_orc9XA1d8xsb5AUdLNA-MQ_qyUukZ36';
+      "sb_publishable_orc9XA1d8xsb5AUdLNA-MQ_qyUukZ36";
     const serviceRoleKey =
-      this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY') ||
+      this.configService.get<string>("SUPABASE_SERVICE_ROLE_KEY") ||
       process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     this.supabase = createClient(url, anonKey);
-    
+
     if (serviceRoleKey) {
       this.supabaseAdmin = createClient(url, serviceRoleKey, {
         auth: {
@@ -39,6 +39,10 @@ export class SupabaseService {
   }
 
   getAdminClient(): SupabaseClient {
-    return this.supabaseAdmin || this.supabase;
+    if (!this.supabaseAdmin)
+      throw new ServiceUnavailableException(
+        "Backend service credentials are not configured",
+      );
+    return this.supabaseAdmin;
   }
 }

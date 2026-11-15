@@ -1,22 +1,25 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { SupabaseModule } from './supabase/supabase.module';
-import { HealthModule } from './modules/health/health.module';
-import { UsersModule } from './modules/users/users.module';
-import { RidesModule } from './modules/rides/rides.module';
-import { ClubsModule } from './modules/clubs/clubs.module';
-import { PlansModule } from './modules/plans/plans.module';
-import { FlagsModule } from './modules/flags/flags.module';
-import { SoundsModule } from './modules/sounds/sounds.module';
-import { CampaignsModule } from './modules/campaigns/campaigns.module';
-import { AdminModule } from './modules/admin/admin.module';
-import { ReportsModule } from './modules/reports/reports.module';
+import { APP_GUARD } from "@nestjs/core";
+import { AdminGuard } from "./auth/admin.guard";
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { SupabaseModule } from "./supabase/supabase.module";
+import { HealthModule } from "./modules/health/health.module";
+import { UsersModule } from "./modules/users/users.module";
+import { RidesModule } from "./modules/rides/rides.module";
+import { ClubsModule } from "./modules/clubs/clubs.module";
+import { PlansModule } from "./modules/plans/plans.module";
+import { FlagsModule } from "./modules/flags/flags.module";
+import { SoundsModule } from "./modules/sounds/sounds.module";
+import { CampaignsModule } from "./modules/campaigns/campaigns.module";
+import { AdminModule } from "./modules/admin/admin.module";
+import { ReportsModule } from "./modules/reports/reports.module";
 
 @Module({
+  providers: [{ provide: APP_GUARD, useClass: AdminGuard }],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: [".env.local", ".env"],
     }),
     SupabaseModule,
     HealthModule,
