@@ -24,6 +24,8 @@ Rollback-only SQL regression scripts are in `supabase/tests/010_admin_operations
 
 Verified live flows: admin password login and all tested read modules/exports (200); rider denied admin endpoints (403); admin-only identity denied rider endpoints (403); rider login/profile; owner membership and captain enrollment; private record isolation; joining/canceling an RSVP; persistent group chat and non-member isolation; announcement publish/audience/unpublish; expense reads; actor-spoof rejection; cleanup.
 
+Final API verification also ran through an isolated Nest server using the hosted database: Expo web CORS preflight passed, and a direct authenticated membership insert was denied with PostgreSQL permission error 42501. Test totals: backend 77/77, admin 5/5, rider client 6/6. Local API CORS now includes `http://localhost:8081`; restart the regular backend process to load its environment changes.
+
 ## Release limits
 
 API integration is not device UI acceptance. Browser/emulator screenshots and physical-device smoke tests remain outstanding. The mobile app explicitly marks radar/intercom, payment settlement and receipt scanning as unavailable; original visual prototypes are opt-in demos. Push notifications, self-service rider signup/recovery and production payment processing are not implemented by this change. Announcement publishing creates an in-app feed; it does not send push/email messages.
