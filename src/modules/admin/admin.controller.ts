@@ -1,3 +1,9 @@
+import { OperationsService } from "./operations.service";
+import {
+  CreateClubDto,
+  ScheduleRideDto,
+  AnnouncementDto,
+} from "./operations.dto";
 import { AdminAccountsService } from "./accounts.service";
 import { AdminAccountDto, AdminCreateDto, AdminRoleDto } from "./accounts.dto";
 import { ConfigAdminService } from "./config.service";
@@ -18,10 +24,47 @@ import { ClubPatchDto, UserPatchDto } from "./admin.dto";
 @Controller("admin")
 export class AdminController {
   constructor(
+    private readonly operations: OperationsService,
     private readonly accounts: AdminAccountsService,
     private readonly service: AdminService,
     private readonly config: ConfigAdminService,
   ) {}
+  @Get("analytics") analytics() {
+    return this.operations.analytics();
+  }
+  @Get("announcements") announcements(@Query("page") page: string) {
+    return this.operations.list("platform_announcements", page);
+  }
+  @Post("announcements") announce(
+    @Body() body: AnnouncementDto,
+    @Req() req: any,
+  ) {
+    return this.operations.operate("announcement", body, req.adminId);
+  }
+  @Put("announcements/:id/archive") archiveAnnouncement(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Req() req: any,
+  ) {
+    return this.operations.operate("archive_announcement", { id }, req.adminId);
+  }
+  @Get("alerts") alerts(@Query("page") page: string) {
+    return this.operations.list("admin_alerts", page);
+  }
+  @Put("alerts/:id/acknowledge") acknowledge(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Req() req: any,
+  ) {
+    return this.operations.operate("acknowledge_alert", { id }, req.adminId);
+  }
+  @Get("reports") report(@Query("dataset") dataset = "summary") {
+    return this.operations.report(dataset);
+  }
+  @Post("clubs") createClub(@Body() body: CreateClubDto, @Req() req: any) {
+    return this.operations.operate("club", body, req.adminId);
+  }
+  @Post("rides") scheduleRide(@Body() body: ScheduleRideDto, @Req() req: any) {
+    return this.operations.operate("ride", body, req.adminId);
+  }
   @Get("accounts") adminAccounts() {
     return this.accounts.accounts();
   }
@@ -65,8 +108,10 @@ export class AdminController {
   @Get("users") users(
     @Query("page") page: string,
     @Query("search") search: string,
+    @Query("country") country: string,
+    @Query("city") city: string,
   ) {
-    return this.service.users(page, search);
+    return this.service.users(page, search, country, city);
   }
   @Get("users/:id/groups") groups(@Param("id", ParseUUIDPipe) id: string) {
     return this.service.groups(id);

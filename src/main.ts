@@ -14,10 +14,13 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   const apiPrefix = configService.get("API_PREFIX") || "/api/v1";
-  const corsOrigin = configService.get("CORS_ORIGIN")?.split(",") || [
-    "http://localhost:5173",
-    "http://localhost:5174",
-  ];
+  const corsOrigin = (
+    configService.get<string>("CORS_ORIGIN") ||
+    "http://localhost:5173,http://localhost:5174,http://localhost:8081"
+  )
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
   app.setGlobalPrefix(apiPrefix);
   app.use(requestLogging);

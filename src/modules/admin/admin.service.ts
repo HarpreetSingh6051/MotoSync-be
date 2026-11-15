@@ -11,7 +11,7 @@ export class AdminService {
     if (result.error) throw result.error;
     return result.data;
   }
-  async list(table: string, page = "1", search = "") {
+  async list(table: string, page = "1", search = "", country = "", city = "") {
     const n = Math.max(1, Math.min(100000, Number(page) || 1));
     let query = this.db
       .getAdminClient()
@@ -20,6 +20,9 @@ export class AdminService {
       .order("created_at", { ascending: false })
       .range((n - 1) * 25, n * 25 - 1);
     if (table === "profiles") query = query.eq("is_rider", true);
+    if (table === "profiles" && country)
+      query = query.eq("country_region", country);
+    if (table === "profiles" && city) query = query.eq("city_region", city);
     const term = search.replace(/[%_(),.]/g, "").slice(0, 80);
     if (term)
       query = query.ilike(
@@ -33,8 +36,8 @@ export class AdminService {
     const result = await query;
     return { items: this.result(result), total: result.count, page: n };
   }
-  users(page: string, search: string) {
-    return this.list("profiles", page, search);
+  users(page: string, search: string, country = "", city = "") {
+    return this.list("profiles", page, search, country, city);
   }
   async updateUser(id: string, patch: any, actor: string) {
     if (id === actor && patch.status && patch.status !== "active")
@@ -123,7 +126,9 @@ export class AdminService {
     const distribution = this.result(
       await client.rpc("admin_plan_distribution"),
     );
+    const analytics = this.result(await client.rpc("admin_platform_analytics"));
     return {
+      analytics,
       counts: Object.fromEntries(
         tables.map((table, i) => [table, counts[i].count]),
       ),

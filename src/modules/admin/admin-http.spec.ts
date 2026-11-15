@@ -67,6 +67,9 @@ describe("Admin API route integration (isolated database fixtures)", () => {
     await app?.close();
   });
   it.each([
+    "/admin/analytics",
+    "/admin/announcements",
+    "/admin/alerts",
     "/admin/accounts",
     "/admin/roles",
     "/admin/dashboard",

@@ -1,4 +1,6 @@
-import { AuthController } from './auth/auth.controller';
+import { AnnouncementsController } from "./announcements.controller";
+import { RiderController } from "./rider.controller";
+import { AuthController } from "./auth/auth.controller";
 import { APP_GUARD } from "@nestjs/core";
 import { AdminGuard } from "./auth/admin.guard";
 import { Module } from "@nestjs/common";
@@ -16,7 +18,7 @@ import { AdminModule } from "./modules/admin/admin.module";
 import { ReportsModule } from "./modules/reports/reports.module";
 
 @Module({
-  controllers: [AuthController],
+  controllers: [AuthController, AnnouncementsController, RiderController],
   providers: [{ provide: APP_GUARD, useClass: AdminGuard }],
   imports: [
     ConfigModule.forRoot({

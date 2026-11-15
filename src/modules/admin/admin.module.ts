@@ -1,3 +1,4 @@
+import { OperationsService } from "./operations.service";
 import { AdminAccountsService } from "./accounts.service";
 import { ConfigAdminService } from "./config.service";
 import { Module } from "@nestjs/common";
@@ -6,7 +7,12 @@ import { AdminService } from "./admin.service";
 
 @Module({
   controllers: [AdminController],
-  providers: [AdminService, ConfigAdminService, AdminAccountsService],
+  providers: [
+    OperationsService,
+    AdminService,
+    ConfigAdminService,
+    AdminAccountsService,
+  ],
   exports: [ConfigAdminService],
 })
 export class AdminModule {}
