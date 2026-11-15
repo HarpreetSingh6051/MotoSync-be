@@ -8,16 +8,9 @@ export class SupabaseService {
   private supabaseAdmin: SupabaseClient;
 
   constructor(private configService: ConfigService) {
-    const url =
-      this.configService.get<string>("SUPABASE_URL") ||
-      process.env.SUPABASE_URL ||
-      process.env.VITE_SUPABASE_URL ||
-      "https://hxsifqmspboitoqnkvwj.supabase.co";
-    const anonKey =
-      this.configService.get<string>("SUPABASE_ANON_KEY") ||
-      process.env.SUPABASE_ANON_KEY ||
-      process.env.VITE_SUPABASE_ANON_KEY ||
-      "sb_publishable_orc9XA1d8xsb5AUdLNA-MQ_qyUukZ36";
+    const url = this.configService.get<string>('SUPABASE_URL');
+    const anonKey = this.configService.get<string>('SUPABASE_ANON_KEY');
+    if (!url || !anonKey) throw new Error('Configure SUPABASE_URL and SUPABASE_ANON_KEY in the backend environment');
     const serviceRoleKey =
       this.configService.get<string>("SUPABASE_SERVICE_ROLE_KEY") ||
       process.env.SUPABASE_SERVICE_ROLE_KEY;

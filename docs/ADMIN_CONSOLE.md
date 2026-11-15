@@ -47,3 +47,9 @@ The migration creates both the Supabase Auth user/email identity and its applica
 Change the initial password in Supabase Auth after the first login, before exposing the admin publicly. The backend still requires `SUPABASE_SERVICE_ROLE_KEY`. This migration does not add user-creation controls to the console; provision additional users via Supabase Auth until that admin module is implemented.
 
 Validation limitation: no PostgreSQL/Supabase CLI or live database connection is available in this workspace, so SQL execution, replay, and password login must still be verified on the target Supabase instance. Supabase manages the Auth schema; validate this seed against the deployed Auth version.
+
+## Backend authentication environment
+
+The admin frontend now routes Auth requests through `/api/v1/auth/v1/{token,user,logout}`. The gateway reads `SUPABASE_URL` and `SUPABASE_ANON_KEY` from backend environment settings; the Supabase service no longer substitutes a hard-coded project or key. Missing configuration fails startup explicitly. Keep `SUPABASE_SERVICE_ROLE_KEY` backend-only. Configure `CORS_ORIGIN` with the local admin origin and deployed admin hostname for the matching environment.
+
+Local password login was tested through the backend: the configured provider returned 400 `invalid_credentials` for the requested bootstrap login. No session was issued. The default account migration remains unapplied/unverified because no database connection is available here. Apply migration 007 or check the existing account's password before retesting.
