@@ -25,11 +25,12 @@ describe("Admin API route integration (isolated database fixtures)", () => {
     ])
       q[name] = () => q;
     q.single = async () => ({
-      data: { id: adminId, role: "super_admin", status: "active" },
+      data: { id: adminId, role_id: "super_admin", status: "active", admin_roles:{permissions:["read","write","manage_admins"]} },
       error: null,
     });
+    q.single = q.maybeSingle;
     q.maybeSingle = async () => ({
-      data: { service_status: "enabled" },
+      data: { service_status: "enabled", role_id:"super_admin",status:"active",admin_roles:{permissions:["read","write","manage_admins"]} },
       error: null,
     });
     q.then = (resolve: any) =>
@@ -66,6 +67,8 @@ describe("Admin API route integration (isolated database fixtures)", () => {
     await app?.close();
   });
   it.each([
+    "/admin/accounts",
+    "/admin/roles",
     "/admin/dashboard",
     "/admin/users",
     "/admin/clubs",

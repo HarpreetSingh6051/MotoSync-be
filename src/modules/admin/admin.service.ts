@@ -19,6 +19,7 @@ export class AdminService {
       .select("*", { count: "exact" })
       .order("created_at", { ascending: false })
       .range((n - 1) * 25, n * 25 - 1);
+    if (table === "profiles") query = query.eq("is_rider", true);
     const term = search.replace(/[%_(),.]/g, "").slice(0, 80);
     if (term)
       query = query.ilike(
@@ -113,6 +114,10 @@ export class AdminService {
         }),
       ),
     );
+    counts[0] = await client
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("is_rider", true);
     counts.forEach((result) => this.result(result));
     const trend = this.result(await client.rpc("admin_registration_trend"));
     const distribution = this.result(

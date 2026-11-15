@@ -66,16 +66,32 @@ export class AdminGuard implements CanActivate {
     if (error || !data.user) throw new UnauthorizedException("Session expired");
     const profile = await this.db
       .getAdminClient()
-      .from("profiles")
-      .select("role,status")
+      .from("admin_users")
+      .select("role_id,status,admin_roles(permissions)")
       .eq("id", data.user.id)
-      .single();
+      .maybeSingle();
     if (profile.error) throw profile.error;
-    if (
-      profile.data?.role !== "super_admin" ||
-      profile.data?.status !== "active"
-    )
-      throw new ForbiddenException("Active super administrator required");
+    if (profile.data?.status !== "active")
+      throw new ForbiddenException("Active administrator account required");
+    const role = profile.data?.admin_roles as unknown as {
+      permissions: string[];
+    };
+    const managing = [
+      "adminAccounts",
+      "adminRoles",
+      "saveAdmin",
+      "createAdmin",
+      "saveRole",
+    ].includes(handler);
+    const required = managing
+      ? "manage_admins"
+      : req.method === "GET"
+        ? "read"
+        : "write";
+    if (!role?.permissions?.includes(required))
+      throw new ForbiddenException(
+        "Your admin role does not permit this action",
+      );
     req.adminId = data.user.id;
     return true;
   }

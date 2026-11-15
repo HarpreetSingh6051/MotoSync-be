@@ -1,7 +1,10 @@
+import { AdminAccountsService } from "./accounts.service";
+import { AdminAccountDto, AdminCreateDto, AdminRoleDto } from "./accounts.dto";
 import { ConfigAdminService } from "./config.service";
 import { ConfigWriteDto } from "./config.dto";
 import {
   Controller,
+  Post,
   Get,
   Put,
   Body,
@@ -15,9 +18,33 @@ import { ClubPatchDto, UserPatchDto } from "./admin.dto";
 @Controller("admin")
 export class AdminController {
   constructor(
+    private readonly accounts: AdminAccountsService,
     private readonly service: AdminService,
     private readonly config: ConfigAdminService,
   ) {}
+  @Get("accounts") adminAccounts() {
+    return this.accounts.accounts();
+  }
+  @Get("roles") adminRoles() {
+    return this.accounts.roles();
+  }
+  @Post("accounts") createAdmin(@Body() body: AdminCreateDto, @Req() req: any) {
+    return this.accounts.create(body, req.adminId);
+  }
+  @Put("accounts/:id") saveAdmin(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() body: AdminAccountDto,
+    @Req() req: any,
+  ) {
+    return this.accounts.save(id, body, req.adminId);
+  }
+  @Put("roles/:id") saveRole(
+    @Param("id") id: string,
+    @Body() body: AdminRoleDto,
+    @Req() req: any,
+  ) {
+    return this.accounts.role(id, body, req.adminId);
+  }
   @Get("config/:resource") configList(@Param("resource") resource: string) {
     return this.config.list(resource);
   }

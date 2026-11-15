@@ -29,8 +29,8 @@ describe("AdminGuard", () => {
         from: () => ({
           select: () => ({
             eq: () => ({
-              single: async () => ({
-                data: { role: "super_admin", status: "active" },
+              maybeSingle: async () => ({
+                data: { role_id: "super_admin", status: "active", admin_roles:{permissions:["read","write","manage_admins"]} },
               }),
             }),
           }),
@@ -71,7 +71,7 @@ describe("AdminGuard", () => {
       db.getAdminClient = () => ({
         from: () => ({
           select: () => ({
-            eq: () => ({ single: async () => ({ data: profile }) }),
+            eq: () => ({ maybeSingle: async () => ({ data: profile }) }),
           }),
         }),
       });

@@ -17,6 +17,7 @@ export class UsersService {
         .getAdminClient()
         .from("profiles")
         .select("*")
+        .eq("is_rider", true)
         .order("created_at", { ascending: false })
         .limit(1000),
     );
@@ -27,6 +28,7 @@ export class UsersService {
         .getAdminClient()
         .from("profiles")
         .select("*")
+        .eq("is_rider", true)
         .eq("id", id)
         .single(),
     );
