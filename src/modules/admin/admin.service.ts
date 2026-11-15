@@ -8,8 +8,7 @@ import { SupabaseService } from "../../supabase/supabase.service";
 export class AdminService {
   constructor(private readonly db: SupabaseService) {}
   private result(result: any) {
-    if (result.error)
-      throw new InternalServerErrorException("Database operation failed");
+    if (result.error) throw result.error;
     return result.data;
   }
   async list(table: string, page = "1", search = "") {
@@ -23,7 +22,11 @@ export class AdminService {
     const term = search.replace(/[%_(),.]/g, "").slice(0, 80);
     if (term)
       query = query.ilike(
-        table === "profiles" ? "full_name" : "name",
+        table === "profiles"
+          ? "full_name"
+          : table === "rides"
+            ? "title"
+            : "name",
         `%${term}%`,
       );
     const result = await query;
@@ -50,13 +53,11 @@ export class AdminService {
       if (!plan) throw new BadRequestException("Choose an active plan");
     }
     return this.result(
-      await this.db
-        .getAdminClient()
-        .rpc("admin_update_profile", {
-          target_id: id,
-          changes: patch,
-          actor_id: actor,
-        }),
+      await this.db.getAdminClient().rpc("admin_update_profile", {
+        target_id: id,
+        changes: patch,
+        actor_id: actor,
+      }),
     );
   }
   async groups(id: string) {
@@ -84,13 +85,11 @@ export class AdminService {
   }
   async verify(id: string, verified: boolean, actor: string) {
     return this.result(
-      await this.db
-        .getAdminClient()
-        .rpc("admin_verify_club", {
-          target_id: id,
-          verified_value: verified,
-          actor_id: actor,
-        }),
+      await this.db.getAdminClient().rpc("admin_verify_club", {
+        target_id: id,
+        verified_value: verified,
+        actor_id: actor,
+      }),
     );
   }
   async audit() {
@@ -108,12 +107,10 @@ export class AdminService {
     const tables = ["profiles", "clubs", "club_members", "rides"];
     const counts = await Promise.all(
       tables.map((table) =>
-        client
-          .from(table)
-          .select(table === "club_members" ? "user_id" : "id", {
-            count: "exact",
-            head: true,
-          }),
+        client.from(table).select(table === "club_members" ? "user_id" : "id", {
+          count: "exact",
+          head: true,
+        }),
       ),
     );
     counts.forEach((result) => this.result(result));

@@ -4,6 +4,8 @@
   ForbiddenException,
   Injectable,
   UnauthorizedException,
+  ServiceUnavailableException,
+  NotFoundException,
 } from "@nestjs/common";
 import { SupabaseService } from "../supabase/supabase.service";
 
@@ -26,8 +28,38 @@ export class AdminGuard implements CanActivate {
           "SoundsController",
           "CampaignsController",
           "ClubsController",
+          "RidesController",
         ].includes(controller));
-    if (!privileged) return true;
+    if (!privileged) {
+      const feature = (
+        {
+          RidesController: "rides",
+          ClubsController: "clubs",
+          SoundsController: "sounds",
+          CampaignsController: "campaigns",
+        } as Record<string, string>
+      )[controller];
+      if (feature) {
+        const { data, error } = await this.db
+          .getClient()
+          .from("app_feature_flags")
+          .select("service_status,maintenance_message")
+          .eq("key", feature)
+          .maybeSingle();
+        if (error)
+          throw new ServiceUnavailableException(
+            "Feature availability cannot be checked. Verify migration 008.",
+          );
+        if (data?.service_status === "maintenance")
+          throw new ServiceUnavailableException(
+            data.maintenance_message ||
+              "This feature is temporarily out of service",
+          );
+        if (data?.service_status === "disabled")
+          throw new NotFoundException("This feature is disabled");
+      }
+      return true;
+    }
     const token = req.headers.authorization?.match(/^Bearer (.+)$/)?.[1];
     if (!token) throw new UnauthorizedException("Sign in as an administrator");
     const { data, error } = await this.db.getClient().auth.getUser(token);
@@ -38,8 +70,8 @@ export class AdminGuard implements CanActivate {
       .select("role,status")
       .eq("id", data.user.id)
       .single();
+    if (profile.error) throw profile.error;
     if (
-      profile.error ||
       profile.data?.role !== "super_admin" ||
       profile.data?.status !== "active"
     )

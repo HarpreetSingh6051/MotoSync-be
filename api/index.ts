@@ -1,22 +1,35 @@
-import { NestFactory } from '@nestjs/core';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import { AppModule } from '../src/app.module';
-import express, { Express, Request, Response } from 'express';
-import helmet from 'helmet';
-import compression from 'compression';
-import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from "@nestjs/config";
+import {
+  requestLogging,
+  ApiExceptionFilter,
+} from "../src/common/http-observability";
+import { NestFactory } from "@nestjs/core";
+import { ExpressAdapter } from "@nestjs/platform-express";
+import { AppModule } from "../src/app.module";
+import express, { Express, Request, Response } from "express";
+import helmet from "helmet";
+import compression from "compression";
+import { ValidationPipe } from "@nestjs/common";
 
 let cachedServer: Express;
 
 async function bootstrapServer(): Promise<Express> {
   if (!cachedServer) {
     const expressApp = express();
-    const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
-    app.setGlobalPrefix('api/v1');
+    const app = await NestFactory.create(
+      AppModule,
+      new ExpressAdapter(expressApp),
+    );
+    const config = app.get(ConfigService);
+    app.setGlobalPrefix(config.get("API_PREFIX") || "api/v1");
+    app.use(requestLogging);
+    app.useGlobalFilters(new ApiExceptionFilter());
     app.use(helmet());
     app.use(compression());
     app.enableCors({
-      origin: '*',
+      origin: (config.get<string>("CORS_ORIGIN") || "http://localhost:5174")
+        .split(",")
+        .map((value) => value.trim()),
       credentials: true,
     });
     app.useGlobalPipes(

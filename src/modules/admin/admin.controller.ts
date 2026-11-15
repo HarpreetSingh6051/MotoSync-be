@@ -1,4 +1,6 @@
-﻿import {
+import { ConfigAdminService } from "./config.service";
+import { ConfigWriteDto } from "./config.dto";
+import {
   Controller,
   Get,
   Put,
@@ -12,7 +14,27 @@ import { AdminService } from "./admin.service";
 import { ClubPatchDto, UserPatchDto } from "./admin.dto";
 @Controller("admin")
 export class AdminController {
-  constructor(private readonly service: AdminService) {}
+  constructor(
+    private readonly service: AdminService,
+    private readonly config: ConfigAdminService,
+  ) {}
+  @Get("config/:resource") configList(@Param("resource") resource: string) {
+    return this.config.list(resource);
+  }
+  @Put("config/:resource/:id") configWrite(
+    @Param("resource") resource: string,
+    @Param("id") id: string,
+    @Body() body: ConfigWriteDto,
+    @Req() req: any,
+  ) {
+    return this.config.write(resource, id, body.values, req.adminId);
+  }
+  @Get("rides") rides(
+    @Query("page") page: string,
+    @Query("search") search: string,
+  ) {
+    return this.service.list("rides", page, search);
+  }
   @Get("users") users(
     @Query("page") page: string,
     @Query("search") search: string,

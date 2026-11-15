@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Delete, Body, Param } from '@nestjs/common';
+import { ConfigAdminService } from '../admin/config.service';
+import { Controller, Get, Post, Delete, Body, Param, Req } from '@nestjs/common';
 import { FlagsService } from './flags.service';
 
 @Controller('flags')
 export class FlagsController {
-  constructor(private readonly flagsService: FlagsService) {}
+  constructor(private readonly flagsService: FlagsService, private readonly config: ConfigAdminService) {}
 
   @Get()
   findAll() {
@@ -16,12 +17,14 @@ export class FlagsController {
   }
 
   @Post()
-  upsert(@Body() flag: any) {
-    return this.flagsService.upsert(flag);
+  upsert(@Body() flag: any, @Req() req: any) {
+    const { key: id, ...values } = flag;
+    if (!values.service_status) values.service_status = values.is_enabled === false ? 'disabled' : 'enabled';
+    return this.config.write('flags', id, values, req.adminId);
   }
 
   @Delete(':key')
-  remove(@Param('key') key: string) {
-    return this.flagsService.remove(key);
+  remove(@Param('key') key: string, @Req() req: any) {
+    return this.config.archive('flags', key, req.adminId);
   }
 }

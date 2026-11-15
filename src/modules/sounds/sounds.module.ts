@@ -1,8 +1,10 @@
+import { AdminModule } from '../admin/admin.module';
 import { Module } from '@nestjs/common';
 import { SoundsController } from './sounds.controller';
 import { SoundsService } from './sounds.service';
 
 @Module({
+  imports: [AdminModule],
   controllers: [SoundsController],
   providers: [SoundsService],
   exports: [SoundsService],

@@ -1,8 +1,10 @@
+import { AdminModule } from '../admin/admin.module';
 import { Module } from '@nestjs/common';
 import { CampaignsController } from './campaigns.controller';
 import { CampaignsService } from './campaigns.service';
 
 @Module({
+  imports: [AdminModule],
   controllers: [CampaignsController],
   providers: [CampaignsService],
   exports: [CampaignsService],
